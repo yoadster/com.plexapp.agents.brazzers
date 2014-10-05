@@ -70,7 +70,10 @@ class EXCAgent(Agent.Movies):
         metadata.genres.clear()
         genres = detailsPageElements.xpath('//div[contains(@class,"tag-card-container")]//a')
         genreFilter=[]
-        genreFilter = Prefs["excludegenre"].split(';')
+        if Prefs["excludegenre"] is not None:
+            Log("exclude")
+            genreFilter = Prefs["excludegenre"].split(';')
+            
         genreFilter.append("Big Dick Worship")
         genreFilter.append("Big Tits Worship")
         genreFilter.append("DP (Standing)")
@@ -78,10 +81,15 @@ class EXCAgent(Agent.Movies):
 
         genreMaps=[]
         genreMapsDict = {}
-        genreMaps = Prefs["tagmapping"].split(';')
-        for mapping in genreMaps:
-            keyVal = mapping.split("=")
-            genreMapsDict[keyVal[0]] = keyVal[1]
+
+        if Prefs["tagmapping"] is not None:
+            Log("tagmapping")
+            genreMaps = Prefs["tagmapping"].split(';')
+            for mapping in genreMaps:
+                keyVal = mapping.split("=")
+                genreMapsDict[keyVal[0]] = keyVal[1]
+        else:
+            genreMapsDict = None
 
         Log(genreMapsDict);
     
@@ -89,11 +97,14 @@ class EXCAgent(Agent.Movies):
             for genreLink in genres:
                 genreName = genreLink.text_content().strip('\n')
                 if any(genreName in g for g in genreFilter) == False:
-                    if genreName in genreMapsDict:
-                        Log(genreMapsDict[genreName])
-                        metadata.genres.add(genreMapsDict[genreName])
+                    if genreMapsDict is not None:
+                        if genreName in genreMapsDict:
+                            Log(genreMapsDict[genreName])
+                            metadata.genres.add(genreMapsDict[genreName])
+                        else:
+                            Log('Not Mapped')
+                            metadata.genres.add(genreName)
                     else:
-                        Log('Not Mapped')
                         metadata.genres.add(genreName)
 
         date = detailsPageElements.xpath('//aside[contains(@class,"scene-date")]')[0].text_content()
@@ -140,9 +151,10 @@ class EXCAgent(Agent.Movies):
             Log('******IN DICT******')
             maleActors = Dict['actors']
 
-        addActors = Prefs['excludeactor'].split(';')
-        for a in addActors:
-            maleActors.append(a)
+        if Prefs['excludeactor'] is not None:
+            addActors = Prefs['excludeactor'].split(';')
+            for a in addActors:
+                maleActors.append(a)
             
         #maleActors.append('James Maverick')
         #maleActors.append('Prince Yashua')
